@@ -17,8 +17,26 @@ This is a standalone Spring Boot project for movie ticket booking with:
 - Spring Boot 3.3
 - Spring Web + Validation
 - Spring Data JPA
-- H2 in-memory DB
+- PostgreSQL
 - JUnit 5
+
+## Prerequisites
+
+Start a local PostgreSQL instance and create the database:
+
+```sql
+CREATE DATABASE "showBooking";
+```
+
+Default connection config (update `application.yml` if different):
+
+| Property | Value |
+|----------|-------|
+| Host     | localhost |
+| Port     | 5432 |
+| Database | showBooking |
+| Username | postgres |
+| Password | postgres |
 
 ## Assumed discount behavior
 
@@ -72,4 +90,5 @@ mvn spring-boot:run
 cd "C:\Users\PrachiVerma\Documents\preps\Preparation\movie-booking-service"
 mvn test
 ```
+
 
