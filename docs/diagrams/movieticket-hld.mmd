@@ -1,0 +1,79 @@
+flowchart LR
+    %% User personas
+    b2c["B2C Customer\n(Browse, Book, Cancel)"]
+    partner["Theatre Partner\n(Onboard, Manage Shows/Seats)"]
+    admin["Platform Admin\n(User/Policy/Offer Management)"]
+    ops["Operations & Support\n(Incidents, Refunds, Reconciliation)"]
+    finance["Finance & Reporting\n(Settlement, Revenue, Analytics)"]
+
+    %% Edge and access
+    subgraph edge["Edge & Access Layer"]
+        apigw["API Gateway / WAF"]
+        auth["AuthN/AuthZ\n(OAuth2 + JWT + RBAC)"]
+        portal["Web/Mobile/Partner Portal APIs"]
+    end
+
+    %% Core domain services
+    subgraph core["Core MovieTicket Platform"]
+        catalog["Catalog Service\n(Movies, Cities, Theatres, Localization)"]
+        show["Show & Inventory Service\n(Show Creation, Seat Inventory)"]
+        booking["Booking Service\n(Seat Lock, Booking Lifecycle)"]
+        pricing["Pricing & Offers Service\n(3rd ticket + Afternoon offers)"]
+        payment["Payment Orchestrator\n(Intent, Callback, Reconcile)"]
+        notify["Notification Service\n(SMS/Email/Push)"]
+        report["Reporting & Analytics Service"]
+    end
+
+    %% Data and async
+    subgraph data["Data & Messaging Layer"]
+        pg[("PostgreSQL\nshows, seats, bookings, payments")]
+        redis[("Redis\nSeat lock TTL, hot cache")]
+        bus["Event Bus\n(Kafka/RabbitMQ)"]
+        dw[("Analytics Store / Data Warehouse")]
+    end
+
+    %% External systems
+    subgraph ext["External Integrations"]
+        paygw["Payment Gateway"]
+        theatreit["Theatre Partner Systems"]
+        comms["SMS/Email/Push Providers"]
+        content["Movie Catalog Providers"]
+    end
+
+    %% User access
+    b2c --> apigw
+    partner --> apigw
+    admin --> apigw
+    ops --> apigw
+    finance --> apigw
+
+    apigw --> auth
+    apigw --> portal
+    portal --> catalog
+    portal --> show
+    portal --> booking
+
+    booking --> pricing
+    booking --> payment
+    booking --> notify
+    booking --> report
+
+    catalog --> content
+    show --> theatreit
+    payment --> paygw
+    notify --> comms
+
+    catalog --> pg
+    show --> pg
+    booking --> pg
+    booking --> redis
+    booking --> bus
+    payment --> pg
+    report --> dw
+    bus --> notify
+    bus --> report
+
+    %% Ops and finance views
+    ops --> report
+    finance --> report
+

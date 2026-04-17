@@ -77,6 +77,46 @@ Both discounts are applied cumulatively:
 }
 ```
 
+## Seeded sample data (Flyway V4)
+
+On a fresh database, startup applies `V4__seed_sample_data.sql` and inserts:
+
+- Shows: `1001` (afternoon), `1002` (evening)
+- City/date to browse: `Bangalore`, `2026-04-10`
+- Existing bookings: `9001` (`CONFIRMED`), `9002` (`CANCELLED`)
+
+### Postman flow with seeded data
+
+1. Browse shows:
+
+```http
+GET http://localhost:8080/api/shows?city=Bangalore&date=2026-04-10
+```
+
+2. Book available seats for show `1001`:
+
+```http
+POST http://localhost:8080/api/bookings
+Content-Type: application/json
+
+{
+  "showId": 1001,
+  "seatNumbers": ["A3", "A4", "A5"]
+}
+```
+
+3. Fetch booking by id (use id from step 2 response):
+
+```http
+GET http://localhost:8080/api/bookings/{bookingId}
+```
+
+4. Cancel booking:
+
+```http
+POST http://localhost:8080/api/bookings/{bookingId}/cancel
+```
+
 ## Run locally
 
 ```powershell

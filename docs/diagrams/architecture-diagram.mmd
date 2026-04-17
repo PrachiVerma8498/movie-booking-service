@@ -1,0 +1,47 @@
+flowchart TB
+    %% External actors
+    customer["B2C Customer\n(Web/Mobile/Postman)"]
+    partner["B2B Theatre Partner"]
+
+    %% Service boundary
+    subgraph app["Movie Booking Service (Spring Boot)"]
+        direction TB
+        api["API Layer\nBookingController\nShowController\nApiExceptionHandler"]
+
+        subgraph services["Service Layer"]
+            showSvc["ShowService"]
+            bookingSvc["BookingService"]
+        end
+
+        subgraph repo["Repository Layer"]
+            showRepo["ShowRepository"]
+            seatRepo["SeatRepository\n(PESSIMISTIC_WRITE for booking/cancel)"]
+            bookingRepo["BookingRepository"]
+        end
+
+        pricing["Offer Rules\n- 50% on 3rd ticket\n- 20% afternoon show"]
+    end
+
+    db[("PostgreSQL\nshows, seats, bookings")]
+    flyway["Flyway Migrations\nV1-V4 schema + sample data"]
+
+    customer -->|"Browse shows / Book / Cancel"| api
+    partner -->|"Create shows + seats"| api
+
+    api --> showSvc
+    api --> bookingSvc
+
+    showSvc --> showRepo
+    showSvc --> seatRepo
+
+    bookingSvc --> seatRepo
+    bookingSvc --> bookingRepo
+    bookingSvc --> showRepo
+    bookingSvc --> pricing
+
+    showRepo --> db
+    seatRepo --> db
+    bookingRepo --> db
+
+    flyway --> db
+

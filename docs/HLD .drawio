@@ -1,0 +1,33 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0">
+  <diagram id="movie-booking-architecture" name="Movie Booking Architecture">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2800" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=20;fontStyle=1;" value="Movie Booking Platform - High Level Architecture" vertex="1">
+          <mxGeometry height="30" width="560" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="securityBand" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Security &amp; Compliance: OAuth2/JWT, WAF, OWASP controls, audit logs, PII encryption" vertex="1">
+          <mxGeometry height="50" width="2320" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="clientsGroup" parent="1" style="swimlane;rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Clients" vertex="1">
+          <mxGeometry height="420" width="260" x="40" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeGroup" parent="1" style="swimlane;rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Edge/API" vertex="1">
+          <mxGeometry height="420" width="280" x="340" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="coreGroup" parent="1" style="swimlane;rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Core Booking Platform (Spring Boot)" vertex="1">
+          <mxGeometry height="420" width="760" x="660" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="dataGroup" parent="1" style="swimlane;rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Data Layer" vertex="1">
+          <mxGeometry height="420" width="390" x="1460" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="integrationGroup" parent="1" style="swimlane;rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="External Integrations" vertex="1">
+          <mxGeometry height="420" width="470" x="1890" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="eventBus" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" value="Event Bus (Kafka / RabbitMQ / SQS)" vertex="1">
+          <mxGeometry height="60" width="360" x="960" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="obsBand" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Observability: Prometheus + Grafana, OpenTelemetry tracing, centralized logs, alerting SLO/SLA" vertex="1">
+          <mxGeometry height="55" width="2320" x="40" y="640" as="geometry" />
+        </mxCell>

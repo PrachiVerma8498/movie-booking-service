@@ -18,10 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class BookingService {
@@ -37,6 +34,62 @@ public class BookingService {
         this.showRepository = showRepository;
         this.seatRepository = seatRepository;
         this.bookingRepository = bookingRepository;
+    }
+
+    @Transactional
+    public BookingResponse bookMovieTickets(BookTicketsRequest request){
+        Set<String> validSeats = validateSeats(request.getSeatNumbers());
+        Show show = showRepository.findById(request.getShowId()).orElseThrow(() -> new ResourceNotFoundException("Show not found: " + request.getShowId()));
+        List<Seat> seats = seatRepository.findAllForUpdateByShowIdAndSeatNumbers(show.getId(), new ArrayList<>(validSeats));
+        if(seats.size()== validSeats.size()){
+            throw new BookingValidationException("One or more seats do not exist for this show.");
+        }
+        for(Seat seat:seats){
+            if(seat.getStatus()!= SeatStatus.AVAILABLE)
+                throw new BookingValidationException("Seat already booked: " + seat.getSeatNumber());
+        }
+        for(Seat seat:seats){
+            seat.setStatus(SeatStatus.BOOKED);
+        }
+        //calculate discount
+        int ticketCount = seats.size();
+        BigDecimal grossAmount = show.getBasePrice().multiply(BigDecimal.valueOf(ticketCount));
+        BigDecimal thirdTicketDiscountPrice = ticketCount >= 3 ? show.getBasePrice().max(THIRD_TICKET_DISCOUNT_RATE) : BigDecimal.ZERO;
+        BigDecimal subTotalAfterThirdTicket = grossAmount.subtract(thirdTicketDiscountPrice);
+
+        BigDecimal afternoonDiscount = isAfternoonShow(show) ? subTotalAfterThirdTicket.multiply(AFTERNOON_DISCOUNT_RATE) : BigDecimal.ZERO;
+        BigDecimal totalGrossDiscount = thirdTicketDiscountPrice.add(afternoonDiscount).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal finalAmount = grossAmount.subtract(totalGrossDiscount).setScale(2, RoundingMode.HALF_UP);
+        Booking booking = new Booking();
+        booking.setTicketCount(ticketCount);
+        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setGrossAmount(grossAmount.setScale(2, RoundingMode.HALF_UP));
+        booking.setShow(show);
+        booking.setDiscountAmount(totalGrossDiscount);
+        booking.setFinalAmount(finalAmount);
+        booking.setSeatNumbersCsv(String.join(",", validSeats));
+        booking.setCreatedAt(LocalDateTime.now());
+        Booking saved = bookingRepository.save(booking);
+        return toResponse(saved);
+
+    }
+
+    private Set<String> validateSeats(List<String> seatNumbers) {
+        if(seatNumbers.isEmpty()){
+            throw new BookingValidationException("At least one seat must be provided.");
+        }
+        Set<String> validSeatNumbers = new HashSet<>();
+        for(String seat:seatNumbers){
+            String value= seat==null? "":seat.toUpperCase().trim();
+            if(value.isEmpty()){
+                throw new BookingValidationException("Seat number cannot be blank.");
+            }
+            if(!validSeatNumbers.add(value)){
+                throw new BookingValidationException("Duplicate seat in request: " + value);
+            }
+
+        }
+        return validSeatNumbers;
     }
 
     @Transactional
@@ -90,6 +143,24 @@ public class BookingService {
 
         Booking saved = bookingRepository.save(booking);
         return toResponse(saved);
+    }
+
+    @Transactional
+    public BookingResponse cancelBookedTicket(long bookingId){
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + bookingId));
+        if(booking.getStatus() == BookingStatus.CANCELLED){
+            throw new BookingValidationException("Booking is already cancelled.");
+        }
+        List<String> bookedSeats = List.of(booking.getSeatNumbersCsv().split(","));
+        List<Seat> seats = seatRepository.findAllForUpdateByShowIdAndSeatNumbers(booking.getShow().getId(), bookedSeats);
+        for(Seat seat:seats){
+            seat.setStatus(SeatStatus.AVAILABLE);
+        }
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancelledAt(LocalDateTime.now());
+        Booking cancelledBooking = bookingRepository.save(booking);
+        return toResponse(cancelledBooking);
     }
 
     @Transactional

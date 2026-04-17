@@ -28,6 +28,7 @@ public class Booking {
     private Show show;
 
     @Column(nullable = false, length = 1000)
+    
     private String seatNumbersCsv;
 
     @Column(nullable = false)
